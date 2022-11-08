@@ -3,8 +3,9 @@ package controllers
 import (
 	"admin/src/database"
 	"admin/src/models"
-	"github.com/dgrijalva/jwt-go"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
 
 	"github.com/segmentio/ksuid"
 
@@ -25,11 +26,11 @@ func Register(c *fiber.Ctx) error {
 		})
 	}
 	user := models.User{
-		Id:        secureId.String(),
-		Firstname: data["first_name"],
-		Lastname:  data["last_name"],
-		Email:     data["email"],
-		IsAdmin:   false,
+		Id:           secureId.String(),
+		Firstname:    data["first_name"],
+		Lastname:     data["last_name"],
+		Email:        data["email"],
+		IsAmbassador: false,
 	}
 	user.SetPassword(data["password"])
 	database.DB.Save(&user)
@@ -70,13 +71,44 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 	cookie := fiber.Cookie{
-		Name: "token-x",
-		Value: token,
-		Expires: time.Now().Add(time.Hour * 24),
+		Name:     "token-x",
+		Value:    token,
+		Expires:  time.Now().Add(time.Hour * 24),
 		HTTPOnly: true,
 	}
 	c.Cookie(&cookie)
 	return c.JSON(fiber.Map{
 		"message": "login success",
+	})
+}
+
+func User(c *fiber.Ctx) error {
+	cookie := c.Cookies("token-x")
+
+	token, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte("secret"), nil
+	})
+	if err != nil || !token.Valid {
+		c.Status(fiber.StatusUnauthorized)
+		return c.JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+	payload := token.Claims.(*jwt.StandardClaims)
+	var user models.User
+	database.DB.Where("id = ?", payload.Subject).First(&user)
+	return c.JSON(user)
+}
+
+func Logout(c *fiber.Ctx) error {
+	cookie := fiber.Cookie{
+		Name:     "token-x",
+		Value:    "",
+		Expires:  time.Now().Add(time.Hour * 24),
+		HTTPOnly: true,
+	}
+	c.Cookie(&cookie)
+	return c.JSON(fiber.Map{
+		"message": "logout successfully",
 	})
 }
