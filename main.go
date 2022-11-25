@@ -1,22 +1,24 @@
 package main
 
 import (
-	"github.com/gofiber/fiber/v2"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
+	"admin/src/database"
+	"admin/src/routes"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"log"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
-	_, err := gorm.Open(mysql.Open("exy:exypassword@tcp(db:3306)/gomin"), &gorm.Config{})
-	if err != nil {
-		print("Could not connect to database")
-	}
+	var err error
+	database.Connect()
+	database.AutoMigrate()
 	app := fiber.New()
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("fff")
-	})
+	app.Use(cors.New(cors.Config{
+		AllowCredentials: true,
+	}))
+	routes.Setup(app)
 	err = app.Listen(":8000")
 	if err != nil {
 		log.Panic("cannot serve server")
