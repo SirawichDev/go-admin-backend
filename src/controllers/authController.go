@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"admin/src/database"
+	"admin/src/middlewares"
 	"admin/src/models"
 	"time"
 
@@ -83,20 +84,9 @@ func Login(c *fiber.Ctx) error {
 }
 
 func User(c *fiber.Ctx) error {
-	cookie := c.Cookies("token-x")
-
-	token, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte("secret"), nil
-	})
-	if err != nil || !token.Valid {
-		c.Status(fiber.StatusUnauthorized)
-		return c.JSON(fiber.Map{
-			"message": "Unauthorized",
-		})
-	}
-	payload := token.Claims.(*jwt.StandardClaims)
+	id, _ := middlewares.GetUserId(c)
 	var user models.User
-	database.DB.Where("id = ?", payload.Subject).First(&user)
+	database.DB.Where("id = ?", id).First(&user)
 	return c.JSON(user)
 }
 
@@ -104,7 +94,7 @@ func Logout(c *fiber.Ctx) error {
 	cookie := fiber.Cookie{
 		Name:     "token-x",
 		Value:    "",
-		Expires:  time.Now().Add(time.Hour * 24),
+		Expires:  time.Now().Add(-time.Hour),
 		HTTPOnly: true,
 	}
 	c.Cookie(&cookie)
