@@ -18,7 +18,7 @@ services:
       MYSQL_DATABASE: gomin
       MYSQL_USER: exy
       MYSQL_PASSWORD: exypassword
-      MYSQL_ROOT_PASSWOR: exypassword
+      MYSQL_ROOT_PASSWORD: exypassword
     volumes:
       - .dbdata:/var/lib/mysql
     ports:
