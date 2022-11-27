@@ -20,4 +20,5 @@ func Setup(app *fiber.App) {
 	adminAuthenticated.Put("/users/update", controllers.UpdateProfile)
 	adminAuthenticated.Put("/users/new-password", controllers.SetUpNewPassword)
 
+	adminAuthenticated.Get("/users/ambassador", controllers.Ambassadors)
 }
