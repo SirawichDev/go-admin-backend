@@ -105,11 +105,14 @@ func Logout(c *fiber.Ctx) error {
 
 func UpdateProfile(c *fiber.Ctx) error {
 	var data map[string]string
+
 	if err := c.BodyParser(&data); err != nil {
 		return err
 	}
-	id, _ := middlewares.GetUserId(c)
+
 	var user models.User
+	id, _ := middlewares.GetUserId(c)
+
 	user = models.User{
 		Id:        id,
 		Email:     data["email"],
@@ -117,14 +120,11 @@ func UpdateProfile(c *fiber.Ctx) error {
 		Lastname:  data["last_name"],
 	}
 
-	database.DB.Model(&user).Updates(&user)
-
-	return c.JSON(fiber.Map{
-		"message": "update successfully",
-	})
+	database.DB.Where("id = ?", id).Updates(&user)
+	return c.JSON(&user)
 }
 
-func UpdatePassword(c *fiber.Ctx) error {
+func SetUpNewPassword(c *fiber.Ctx) error {
 	var data map[string]string
 
 	if err := c.BodyParser(&data); err != nil {
@@ -142,9 +142,12 @@ func UpdatePassword(c *fiber.Ctx) error {
 		Id: id,
 	}
 	user.SetPassword(data["password"])
-	database.DB.Model(&user).Updates(&user)
 
-	return c.JSON(fiber.Map{
-		"message": "update password successfully",
-	})
+	database.DB.Model(&user).Updates(&user)
+	return c.JSON(
+		fiber.Map{
+			"message": "new password config successfully!",
+		},
+	)
+
 }
