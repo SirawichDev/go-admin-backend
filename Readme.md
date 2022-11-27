@@ -11,3 +11,7 @@
 - ``` docker compose up ```
 
 - ``` docker compose up --build ``` to run air(hot reload lib)
+
+### to seed user (seedUser.go)
+- run ``` docker compose exec backend sh ```
+- then run ``` go run src/commands/seedUsers.go ```
