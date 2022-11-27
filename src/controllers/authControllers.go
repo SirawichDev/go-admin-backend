@@ -130,7 +130,6 @@ func SetUpNewPassword(c *fiber.Ctx) error {
 	if err := c.BodyParser(&data); err != nil {
 		return err
 	}
-
 	if data["password"] != data["password_confirm"] {
 		c.Status(400)
 		return c.JSON(fiber.Map{
