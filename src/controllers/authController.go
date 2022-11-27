@@ -102,3 +102,53 @@ func Logout(c *fiber.Ctx) error {
 		"message": "logout successfully",
 	})
 }
+
+func UpdateProfile(c *fiber.Ctx) error {
+	var data map[string]string
+
+	if err := c.BodyParser(&data); err != nil {
+		return err
+	}
+
+	var user models.User
+	id, _ := middlewares.GetUserId(c)
+
+	user = models.User{
+		Id:        id,
+		Email:     data["email"],
+		Firstname: data["first_name"],
+		Lastname:  data["last_name"],
+	}
+
+	database.DB.Where("id = ?", id).Updates(&user)
+	return c.JSON(&user)
+}
+
+func SetUpNewPassword(c *fiber.Ctx) error {
+	var data map[string]string
+
+	if err := c.BodyParser(&data); err != nil {
+		return err
+	}
+
+	if data["password"] != data["password_confirm"] {
+		c.Status(400)
+		return c.JSON(fiber.Map{
+			"message": "Password not match",
+		})
+	}
+	id, _ := middlewares.GetUserId(c)
+	var user models.User
+	user = models.User{
+		Id: id,
+	}
+	user.SetPassword(data["password"])
+
+	database.DB.Model(&user).Updates(&user)
+	return c.JSON(
+		fiber.Map{
+			"message": "new password config successfully!",
+		},
+	)
+
+}
